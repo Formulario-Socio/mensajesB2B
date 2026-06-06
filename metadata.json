@@ -1,0 +1,6 @@
+{
+  "name": "Centro de Comando B2B",
+  "description": "Herramienta de prospección ejecutiva y copywriting de alta conversión para el mercado corporativo mexicano, impulsada por IA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
