@@ -624,6 +624,40 @@ export default function App() {
     }
   };
 
+  // --- Quick Mark as Sent (Directly from Table) ---
+  const handleQuickMarkAsSent = async (targetLead: Lead, channel: "Correo" | "WhatsApp", e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const todayStr = new Date().toLocaleDateString("es-MX", {
+      day: "2-digit",
+      month: "2-digit"
+    });
+
+    const currentEntry = `[${todayStr} - ${channel} - ${selectedBrand}]; `;
+    const updatedHistory = (targetLead.history || "") + currentEntry;
+
+    try {
+      const { error } = await supabase
+        .from("leads")
+        .update({
+          status: "Contactado",
+          last_brand_used: selectedBrand,
+          last_channel_used: channel,
+          contacted_today: true,
+          history: updatedHistory
+        })
+        .eq("id", targetLead.id);
+
+      if (error) throw error;
+
+      triggerToast(`✔️ Registrado envío rápido por ${channel} a ${targetLead.name} (${selectedBrand}).`);
+      await fetchLeadsFromSupabase(true);
+    } catch (err: any) {
+      console.error("Error quick marking as sent:", err);
+      triggerToast(`⚠️ Error al registrar envío rápido: ${err.message}`);
+    }
+  };
+
   // --- Mark as Sent / Contacted ---
   const handleMarkAsSent = async (channel: "Correo" | "WhatsApp") => {
     if (!activeLead) return;
@@ -1947,6 +1981,26 @@ export default function App() {
 
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
+                          {getStatusForBrand(lead, selectedBrand) === "Pendiente" && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => handleQuickMarkAsSent(lead, "Correo", e)}
+                                className="text-slate-400 hover:text-brand-blue p-1 rounded hover:bg-slate-100 cursor-pointer transition-colors"
+                                title={`Marcar enviado por Correo (${selectedBrand})`}
+                              >
+                                <Mail className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handleQuickMarkAsSent(lead, "WhatsApp", e)}
+                                className="text-slate-400 hover:text-[#25D366] p-1 rounded hover:bg-slate-100 cursor-pointer transition-colors"
+                                title={`Marcar enviado por WhatsApp (${selectedBrand})`}
+                              >
+                                <MessageSquare className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          )}
                           <button
                             type="button"
                             onClick={(e) => {
